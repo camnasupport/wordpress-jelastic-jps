@@ -240,17 +240,20 @@ actions:
         wp config set DISABLE_WP_CRON true --raw --path=/var/www/webroot/ROOT
 
   installVector:
-    - install: ${baseUrl}/../addons/vector-observability.jps?_r=${fn.random}
-      settings:
-        install_cp: true
-        install_bl: false
-        install_sqldb: false
-        install_nosqldb: false
-        install_cache: false
-        install_storage: false
-        install_vds: false
-        install_extra: false
-        vectorConfigUrl: ""
+    - install:
+        jps: appstore
+        id: 5d843b9a-483c-4a9e-815e-f968eef3dd8a
+        nodeGroup: cp
+        settings:
+          install_cp: true
+          install_bl: false
+          install_sqldb: false
+          install_nosqldb: false
+          install_cache: false
+          install_storage: false
+          install_vds: false
+          install_extra: false
+          vectorConfigUrl: ""
 
   setupNode:
     - log: OPTIMIZATION
