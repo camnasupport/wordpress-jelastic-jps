@@ -117,6 +117,7 @@ onInstall:
   - setupNode:
       nodeId: cp
   - setupNginxRealIp
+  - setupNginxDisableCache
   - if (${globals.isSingleDeploy}):
     - setProtocol
     - setDomain            
@@ -258,6 +259,41 @@ actions:
           done
           if ! grep -q 'camna-real-ip.conf' /etc/nginx/nginx.conf; then
             sed -i '/http[[:space:]]*{/a\    include /etc/nginx/camna-real-ip.conf;' /etc/nginx/nginx.conf
+          fi
+          nginx -t
+          jem service reload || service nginx reload || /etc/init.d/nginx reload
+        user: root
+
+  setupNginxDisableCache:
+    - if (/lemp/.test("${nodes.cp.nodeType}") || /nginxphp/.test("${nodes.cp.nodeType}")):
+        cmd[cp]: |-
+          set -e
+          CONF=""
+          for f in \
+            /etc/nginx/sites-enabled/default.conf \
+            /etc/nginx/conf.d/sites-enabled/default.conf \
+            /etc/nginx/conf.d/default.conf; do
+            if [ -f "$f" ]; then CONF="$f"; break; fi
+          done
+          if [ -z "$CONF" ]; then
+            CONF=$(find /etc/nginx -type f -name 'default.conf' 2>/dev/null | head -n1 || true)
+          fi
+          [ -n "$CONF" ] || { echo "default.conf not found under /etc/nginx"; exit 1; }
+          echo "Disabling nginx fastcgi cache in $CONF"
+          # Comment out cache directives; leave fastcgi_read_timeout active
+          for pattern in \
+            'fastcgi_cache[[:space:]]\{1,\}WORDPRESS' \
+            'fastcgi_cache_valid' \
+            'fastcgi_cache_bypass' \
+            'fastcgi_no_cache' \
+            'add_header[[:space:]]\{1,\}X-Cache'; do
+            sed -i "/^[[:space:]]*#/!{/${pattern}/s/^[[:space:]]*/#/}" "$CONF"
+          done
+          if grep -qE '^[[:space:]]*#?[[:space:]]*fastcgi_read_timeout' "$CONF"; then
+            sed -i 's/^[[:space:]]*#[[:space:]]*\(fastcgi_read_timeout.*\)$/\1/' "$CONF"
+            sed -i 's/^\([[:space:]]*\)fastcgi_read_timeout[[:space:]].*/\1fastcgi_read_timeout 300;/' "$CONF"
+          else
+            sed -i '/#fastcgi_no_cache\|#fastcgi_cache_bypass/a\fastcgi_read_timeout 300;' "$CONF"
           fi
           nginx -t
           jem service reload || service nginx reload || /etc/init.d/nginx reload
