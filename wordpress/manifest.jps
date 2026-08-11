@@ -132,6 +132,7 @@ onInstall:
       - installCDN
       - setupCDN
     - if (${settings.woocommerce:false}): installWoocommerce
+    - installVector
     - install: 
       - jps: /scripts/events.jps?_r=${fn.random}
       - jps: ${globals.WP_CLUSTER_PATH}/scripts/addons.jps?_r=${fn.random}
@@ -237,6 +238,19 @@ actions:
     - cmd[cp]: |-
         wp config set WP_AUTO_UPDATE_CORE minor --path=/var/www/webroot/ROOT
         wp config set DISABLE_WP_CRON true --raw --path=/var/www/webroot/ROOT
+
+  installVector:
+    - install: ${baseUrl}/../addons/vector-observability.jps?_r=${fn.random}
+      settings:
+        install_cp: true
+        install_bl: false
+        install_sqldb: false
+        install_nosqldb: false
+        install_cache: false
+        install_storage: false
+        install_vds: false
+        install_extra: false
+        vectorConfigUrl: ""
 
   setupNode:
     - log: OPTIMIZATION

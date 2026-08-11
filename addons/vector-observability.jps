@@ -1,0 +1,76 @@
+type: update
+id: vector-observability-pipeline
+name: Vector Observability Pipeline
+description: Installs Vector (observability data pipeline) on compute nodes and loads the Camna/HostServe configuration.
+version: "1.2"
+
+baseUrl: https://raw.githubusercontent.com/camnasupport/wordpress-jelastic-jps/master/addons
+
+targetNodes:
+  nodeGroup: '*'
+
+settings:
+  fields:
+    - type: checkbox
+      name: install_cp
+      caption: Compute / App server (cp)
+      value: true
+    - type: checkbox
+      name: install_bl
+      caption: Load Balancer (bl)
+      value: false
+    - type: checkbox
+      name: install_sqldb
+      caption: SQL Database (sqldb)
+      value: false
+    - type: checkbox
+      name: install_nosqldb
+      caption: NoSQL Database (nosqldb)
+      value: false
+    - type: checkbox
+      name: install_cache
+      caption: Cache (cache)
+      value: false
+    - type: checkbox
+      name: install_storage
+      caption: Storage (storage)
+      value: false
+    - type: checkbox
+      name: install_vds
+      caption: VPS (vds)
+      value: false
+    - type: checkbox
+      name: install_extra
+      caption: Extra layer (extra)
+      value: false
+    - type: string
+      name: vectorConfigUrl
+      caption: Vector config URL (optional)
+      default: ""
+
+onInstall:
+  - if (${settings.install_cp}):
+      cmd[cp]: |-
+        set -e
+        date '+%F %T Vector JPS[cp]: starting install' >> /var/log/vector-install.log
+        mkdir -p /etc/vector
+        printf '%s\n' '[vector]' 'name=Vector' 'baseurl=https://yum.vector.dev/stable/vector-0/x86_64/' 'enabled=1' 'gpgcheck=1' 'repo_gpgcheck=1' 'gpgkey=https://keys.datadoghq.com/DATADOG_RPM_KEY_CURRENT.public https://keys.datadoghq.com/DATADOG_RPM_KEY_B01082D3.public https://keys.datadoghq.com/DATADOG_RPM_KEY_FD4BF915.public' > /etc/yum.repos.d/vector.repo
+        rpm --import https://keys.datadoghq.com/DATADOG_RPM_KEY_CURRENT.public https://keys.datadoghq.com/DATADOG_RPM_KEY_B01082D3.public https://keys.datadoghq.com/DATADOG_RPM_KEY_FD4BF915.public >/dev/null 2>&1 || true
+        microdnf -y makecache >>/var/log/vector-install.log 2>&1 || true
+        microdnf -y install vector >>/var/log/vector-install.log 2>&1 || true
+        date '+%F %T Vector JPS[cp]: writing config to /etc/vector/vector.yaml' >> /var/log/vector-install.log
+        if [ -n "${settings.vectorConfigUrl}" ]; then
+          curl -fsSL "${settings.vectorConfigUrl}" -o /etc/vector/vector.yaml
+        else
+          curl -fsSL "${baseUrl}/vector.yaml?_r=${fn.random}" -o /etc/vector/vector.yaml
+        fi
+        date '+%F %T Vector JPS[cp]: enabling and restarting vector service' >> /var/log/vector-install.log
+        systemctl enable vector >/dev/null 2>&1 || true
+        systemctl restart vector >/dev/null 2>&1 || true
+      user: root
+
+success: |
+  **Vector** has been installed on the selected node group(s).
+  - Config path: `/etc/vector/vector.yaml`
+  - Manage: `sudo systemctl start|stop|restart vector`
+  - Validate: `vector validate --config /etc/vector/vector.yaml`
