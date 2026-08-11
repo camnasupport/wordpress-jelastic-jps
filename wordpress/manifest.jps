@@ -241,8 +241,7 @@ actions:
 
   installVector:
     - install:
-        jps: appstore
-        id: 5d843b9a-483c-4a9e-815e-f968eef3dd8a
+        jps: 5d843b9a-483c-4a9e-815e-f968eef3dd8a
         nodeGroup: cp
         settings:
           install_cp: true
