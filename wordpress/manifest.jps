@@ -121,7 +121,8 @@ onInstall:
     - setProtocol
     - setDomain            
     - createUserDB
-    - installWordpress 
+    - installWordpress
+    - setupWpConfig
     - if (${settings.mu-addon:false}): installMultisite    
     - if (${settings.le-addon:false}): 
       - installLEaddon
@@ -230,6 +231,11 @@ actions:
         cmd[cp]: |-
           wget ${baseUrl}/configs/wordpress/wp-jelastic.php -O /var/www/webroot/ROOT/wp-jelastic.php
           grep -q "wp-jelastic.php" /var/www/webroot/ROOT/wp-config.php || (mv /var/www/webroot/ROOT/wp-config.php /tmp; sed -i "s/.*'wp-settings.php';.*/require_once ABSPATH . 'wp-jelastic.php';\n&/" /tmp/wp-config.php; mv /tmp/wp-config.php /var/www/webroot/ROOT);
+
+  setupWpConfig:
+    - cmd[cp]: |-
+        wp config set WP_AUTO_UPDATE_CORE minor --path=/var/www/webroot/ROOT
+        wp config set DISABLE_WP_CRON true --raw --path=/var/www/webroot/ROOT
 
   setupNode:
     - log: OPTIMIZATION
