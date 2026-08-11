@@ -4,7 +4,7 @@ import com.hivext.api.core.utils.Transport;
 
 var cdnAppid = "c05ffa5b45628a2a0c95467ebca8a0b4";
 var lsAppid = "9e6afcf310004ac84060f90ff41a5test";
-var baseUrl = "https://raw.githubusercontent.com/jelastic-jps/wordpress/master/wordpress";
+var baseUrl = "https://raw.githubusercontent.com/camnasupport/wordpress-jelastic-jps/master/wordpress";
 var cdnText = "Install Lightning-Fast Premium CDN",
     sslText = "Install Let's Encrypt SSL with Auto-Renewal";
     lsText = "Install LiteSpeed High-Performance Web Server";

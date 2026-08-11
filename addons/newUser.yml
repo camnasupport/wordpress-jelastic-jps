@@ -1,7 +1,7 @@
 type: update
 id: wp-users
 name: Add-on for creates a new WordPress user.
-baseUrl: https://raw.githubusercontent.com/jelastic-jps/wordpress/master/addons
+baseUrl: https://raw.githubusercontent.com/camnasupport/wordpress-jelastic-jps/master/addons
 description: Add-on for creates a new WordPress user.
 
 globals:

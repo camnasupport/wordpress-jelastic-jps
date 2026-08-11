@@ -1,17 +1,17 @@
 jpsType: install
 jpsVersion: '1.7.2'
-id: wordpress
-name: WordPress Standalone Kit
+id: wordpress-camna
+name: WordPress Standalone Kit - Camna
 categories:
   - apps/blogs
   - apps/content-management
-logo: https://raw.githubusercontent.com/jelastic-jps/wordpress/master/images/wp-standalone.png
+logo: https://raw.githubusercontent.com/camnasupport/wordpress-jelastic-jps/master/images/wp-standalone.png
 homepage: http://wordpress.org/
 description:
   text: WordPress Standalone with built-in kit for choosing optimal application servers and a set of advanced features for running websites and blogs. WordPress CMS deployed as a lightweight standalone container with minimal allocated resources for cost efficiency.
   short: WordPress Standalone with built-in kit for choosing optimal application servers and a set of advanced features for running websites and blogs
 
-baseUrl: https://raw.githubusercontent.com/jelastic-jps/wordpress/v2.2.0
+baseUrl: https://raw.githubusercontent.com/camnasupport/wordpress-jelastic-jps/master/wordpress
 
 onBeforeInit: /scripts/beforeInit.js?_r=${fn.random}
 onBeforeInstall: /scripts/beforeInstall.js?_r=${fn.random}
@@ -98,7 +98,7 @@ settings:
       markup:
 
 mixins:
- - https://raw.githubusercontent.com/jelastic-jps/wordpress/master/configs/vers.yaml
+ - https://raw.githubusercontent.com/camnasupport/wordpress-jelastic-jps/master/configs/vers.yaml
 
 globals:
   isSingleDeploy: ${settings.isSingleDeploy:true}
@@ -225,6 +225,10 @@ actions:
         wp_title: "Hello World"
         wp_url: ${globals.PROTOCOL}://${globals.DOMAIN}/
         cluster: false
+    - if (/lemp/.test("${nodes.cp.nodeType}") || /nginxphp/.test("${nodes.cp.nodeType}")):
+        cmd[cp]: |-
+          wget ${baseUrl}/configs/wordpress/wp-jelastic.php -O /var/www/webroot/ROOT/wp-jelastic.php
+          grep -q "wp-jelastic.php" /var/www/webroot/ROOT/wp-config.php || (mv /var/www/webroot/ROOT/wp-config.php /tmp; sed -i "s/.*'wp-settings.php';.*/require_once ABSPATH . 'wp-jelastic.php';\n&/" /tmp/wp-config.php; mv /tmp/wp-config.php /var/www/webroot/ROOT);
 
   setupNode:
     - log: OPTIMIZATION
